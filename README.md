@@ -4,6 +4,21 @@ This project explores two approaches for converting natural language questions i
 
 ---
 
+## Project Objective
+
+Convert questions such as:  
+"How many students are enrolled in the Math department?"  
+
+Into valid SQL queries such as:  
+`SELECT COUNT(*) FROM students WHERE department = 'Math';`
+
+We compare two methods for accomplishing this:
+1. Fine-tuning an LLM on schema-aware data 
+2. Prompting, both zero and few-shot, using schema and example queries
+
+
+---
+
 ## Motivation
 
 Inspired by Uber’s [QueryGPT](https://www.uber.com/blog/query-gpt/), our project explores the effectiveness of prompting strategies and fine-tuning for translating natural language into structured queries.
@@ -21,20 +36,6 @@ We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmar
 Query Authoring Time: Manual SQL queries at Uber typically take around 10 minutes to write. With QueryGPT, this time is reduced to approximately 3 minutes, representing a significant productivity gain. ​
 
 User Adoption and Satisfaction: In a limited release to Operations and Support teams, about 300 daily active users reported that 78% of the generated queries reduced the time they would have spent writing queries from scratch. 
-
----
-
-## Project Objective
-
-Convert questions such as:  
-"How many students are enrolled in the Math department?"  
-
-Into valid SQL queries such as:  
-`SELECT COUNT(*) FROM students WHERE department = 'Math';`
-
-We compare two methods for accomplishing this:
-1. Fine-tuning an LLM on schema-aware data 
-2. Prompting, both zero and few-shot, using schema and example queries
 
 ---
 
