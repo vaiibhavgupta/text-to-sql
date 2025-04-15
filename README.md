@@ -116,17 +116,65 @@ Finally, evaluation metrics such as output accuracy and error types are computed
 
 ---
 
-### Step 3: Evaluation Metrics
-
-**Execution Accuracy**
-- Percentage of generated queries that run without syntax or runtime errors
-
-**Output Accuracy**
-- Percentage of generated queries that exactly match the gold (expected) SQL queries
-
-Note: If a generated query exactly matches the gold query, it is guaranteed to execute correctly.
+Here’s a clear and structured explanation for **Step 3: Evaluation Metrics**, broken down into simple points:
 
 ---
 
-## Example Few-shot Prompt
+### Step 3: Evaluating Model Performance Using Execution and Output Accuracy
+
+#### Overview
+
+In this step, the performance of all three approaches—**Zero-shot**, **Few-shot**, and **Fine-tuned**—is evaluated using two key metrics:
+
+- **Execution Accuracy**: Measures how many SQL queries execute without errors on the database. This tells us if the generated SQL is syntactically and semantically valid.
+- **Output Accuracy**: Measures how many generated SQL queries match exactly with the ground truth (`gold_query`). This evaluates correctness beyond just successful execution.
+
+> Note: If a query is **100% correct (output accuracy)**, it will **always execute successfully** (100% execution accuracy). However, a query might execute without errors and still be logically wrong.
+
+---
+
+#### Part 1: Evaluating Zero-shot and Few-shot Predictions
+
+1. The file `dev_set_zero_few_shot.csv` is loaded, which contains predictions from zero-shot and few-shot prompting.
+2. For each row:
+   - The gold SQL query is extracted.
+   - The zero-shot and few-shot predictions are run on the corresponding database using `run_query`.
+   - Results (either output or error) are stored for comparison.
+3. Errors from each approach are categorized (e.g., syntax errors, column name errors) using `get_error_distribution`.
+4. **Execution Accuracy** is calculated as:
+   \[
+   \text{Execution Accuracy} = \frac{\text{Number of Queries That Ran Without Errors}}{\text{Total Queries}} \times 100
+   \]
+   - Zero-shot Execution Accuracy: **51.04%**
+   - Few-shot Execution Accuracy: **1.96%**
+5. **Output Accuracy** is measured using `get_output_accuracy` by comparing the predicted query to the gold query.
+   - Zero-shot Output Accuracy: **18.06%**
+   - Few-shot Output Accuracy: **0.26%**
+
+---
+
+#### Part 2: Evaluating Fine-tuned Model Predictions
+
+1. Predictions from the fine-tuned model are loaded from `dev_set_finetuned.csv`.
+2. Each predicted and gold SQL query is executed against the corresponding database.
+3. Errors are categorized and counted.
+4. **Execution Accuracy**:
+   - Fine-tuned Execution Accuracy: **73.27%**
+5. **Output Accuracy**:
+   - Fine-tuned Output Accuracy: **30.12%**
+
+---
+
+#### Summary of Evaluation Metrics
+
+| Approach     | Execution Accuracy | Output Accuracy |
+|--------------|--------------------|------------------|
+| Zero-shot    | 51.04%             | 18.06%           |
+| Few-shot     | 1.96%              | 0.26%            |
+| Fine-tuned   | 73.27%             | 30.12%           |
+
+This evaluation shows that **fine-tuning significantly improves both the correctness and reliability** of SQL query generation compared to zero-shot and few-shot prompting approaches.
+
+
+---
 
