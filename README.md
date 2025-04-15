@@ -17,6 +17,11 @@ Our goal is to replicate and extend these ideas using open-source tools and benc
 
 We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test the ability of LLMs to generate SQL across a variety of schemas and complex questions.
 
+#### Performance Metrics
+Query Authoring Time: Manual SQL queries at Uber typically take around 10 minutes to write. With QueryGPT, this time is reduced to approximately 3 minutes, representing a significant productivity gain. ​
+
+User Adoption and Satisfaction: In a limited release to Operations and Support teams, about 300 daily active users reported that 78% of the generated queries reduced the time they would have spent writing queries from scratch. 
+
 ---
 
 ## Project Objective
@@ -162,21 +167,6 @@ In this step, the performance of all approaches—**Zero-shot**, **Few-shot**, *
    - Fine-tuned Execution Accuracy: **73.27%**
 5. **Output Accuracy**:
    - Fine-tuned Output Accuracy: **30.12%**
-
----
-
-#### Summary of Evaluation Metrics
-
-| Approach     | Execution Accuracy | Output Accuracy |
-|--------------|--------------------|------------------|
-| Zero-shot    | 51.04%             | 18.06%           |
-| Few-shot     | 1.96%              | 0.26%            |
-| Fine-tuned   | 73.27%             | 30.12%           |
-
-This evaluation shows that **fine-tuning significantly improves both the correctness and reliability** of SQL query generation compared to zero-shot and few-shot prompting approaches.
-
----
-Sure! Here's the **complete section** you can directly add to your README under a heading like **"Results Visualization"**. It includes both **textual descriptions** and references to the actual image files from your `figures/` folder using Markdown:
 
 ---
 
