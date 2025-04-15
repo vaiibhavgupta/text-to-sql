@@ -73,10 +73,46 @@ All predictions are saved to a CSV file for later analysis.
 
 ### Step 2: Fine-Tuning
 
-- Input: schema + question
-- Output: SQL query
-- Train the model on the BirdSQL training set and evaluate on the dev set
-- For queries that result in errors, prompt the LLM with the schema, the incorrect query, and the error message, and ask it to generate a corrected version
+#### Part 1: Training a Fine-tuned Language Model Using LoRA
+The training and validation datasets (train_set.csv and dev_set.csv) are loaded. Each row contains a conversation, which includes a database schema, a natural language question, a hint, and the corresponding SQL query.
+
+The script initializes the LLaMA 3.2B Instruct model using the Unsloth framework, with an option to load the model in 4-bit precision to optimize memory usage.
+
+The model is prepared for fine-tuning using LoRA (Low-Rank Adaptation), which injects trainable adapter layers into key transformer components. This allows efficient fine-tuning without updating the full model.
+
+A chat template is applied to format the training data as conversational text, matching the structure expected by the model. This helps align the model's behavior with typical dialogue-style prompts.
+
+The processed dataset is passed to the SFTTrainer, which fine-tunes the model using supervised learning. Training parameters such as learning rate, batch size, number of epochs, and precision settings (fp16 or bf16) are specified using TrainingArguments.
+
+Once training is complete, the fine-tuned model is used to generate predictions on the dev set. Each prompt (schema, question, and hint) is tokenized and passed to the model to produce a SQL output, which is then decoded and saved to a new file, dev_set_finetuned.csv.
+
+Finally, the trained model is saved in GGUF format, making it suitable for further use or deployment.
+
+#### Part 2: Evaluation and Query Rectification
+The fine-tuned predictions are loaded and processed to extract:
+
+The gold (ground truth) SQL query,
+
+The model's predicted query,
+
+The original schema included in the prompt.
+
+Each predicted SQL query is executed against the database using a function run_query, which returns the result or an error if the query fails.
+
+If the query fails to execute (e.g., due to syntax or schema errors), a rectification process is triggered:
+
+A prompt is generated using the schema, the failed query, and the error message.
+
+This prompt is passed to the language model again, asking it to correct the query.
+
+If the model returns the fixed query within a code block (e.g., sql ... ), it is parsed accordingly.
+
+The corrected query is then executed to verify if the issue is resolved.
+
+Execution results from both the original and rectified queries are collected.
+
+Finally, evaluation metrics such as output accuracy and error types are computed using helper functions like get_error_distribution and get_output_accuracy. This provides insights into the effectiveness of fine-tuning and the model’s ability to generate valid SQL.
+
 
 ---
 
