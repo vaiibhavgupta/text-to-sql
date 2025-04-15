@@ -1,6 +1,6 @@
-# Comparing Natural Language to SQL Efficiency
+# Text to SQL
 
-This project explores two approaches for converting natural language questions into structured queries (SQL or Cypher) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we evaluate both few-shot prompting and fine-tuning techniques on the BirdSQL dataset.
+This project explores two approaches for converting natural language questions into structured queries (SQL) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we evaluate both few-shot prompting and fine-tuning techniques on the BirdSQL dataset.
 
 ---
 
