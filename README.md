@@ -44,7 +44,7 @@ We compare two methods for accomplishing this:
 
 **Prompt Formatting**
 - Convert the schema dictionary into a readable text prompt
-- Include instructions like “Here are the tables in the database” followed by each table's schema
+- Include instructions and context like “Here are the tables in the database” followed by each table's schema.
 
 **Example Construction**
 - Load a dataset such as `train.json`
