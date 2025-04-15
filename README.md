@@ -1,118 +1,112 @@
-# text-to-sql
+# Comparing Natural Language to SQL Efficiency
 
-# 🧠 Transformers Final Project: Natural Language to SQL/Cypher
-
-This project explores two approaches for converting natural language questions into structured queries (SQL/Cypher) using large language models (LLMs). Inspired by real-world applications like Uber's **QueryGPT**, we evaluate both **few-shot prompting** and **fine-tuning** techniques on the **BirdSQL** dataset.
+This project explores two approaches for converting natural language questions into structured queries (SQL or Cypher) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we evaluate both few-shot prompting and fine-tuning techniques on the BirdSQL dataset.
 
 ---
 
-## 🔍 Motivation
+## Motivation
 
 Inspired by Uber’s [QueryGPT](https://www.uber.com/blog/query-gpt/), our project explores the effectiveness of prompting strategies and fine-tuning for translating natural language into structured queries.
 
-Uber showed that:
-- **LLMs can bridge the gap** between business users and data via natural language
-- Even **smaller LLMs**, with proper prompting, can match the performance of larger models
-- **Execution accuracy** and **semantic correctness** are key metrics when evaluating generated queries
+Uber demonstrated that:
+- LLMs can help bridge the gap between business users and structured databases
+- Smaller LLMs, with effective prompting, can perform similarly to larger models
+- Execution accuracy and semantic correctness are key metrics for evaluating query generation
 
-Our goal is to reproduce and extend this idea using open-source tools and publicly available benchmarks.
+Our goal is to replicate and extend these ideas using open-source tools and benchmarks.
 
-> 🧠 We used the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test LLM capabilities in translating natural language to SQL. It contains diverse schemas and complex questions, ideal for robust evaluation.
-
----
-
-## 🎯 Project Objective
-
-Convert questions like  
-> _"How many students are enrolled in the Math department?"_  
-into structured queries like  
-> `SELECT COUNT(*) FROM students WHERE department = 'Math';`
-
-We evaluate how well LLMs perform this task using two methods:
-1. Fine-tuning the model
-2. Few-shot prompting with examples
+We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test the ability of LLMs to generate SQL across a variety of schemas and complex questions.
 
 ---
 
-## 🧪 Approaches Compared
+## Project Objective
 
-### 1. Fine-Tuning an LLM  
-Train a pre-trained transformer model (e.g., T5, GPT) on a labeled dataset (like BirdSQL) with natural language questions and matching SQL queries.
+Convert questions such as:  
+"How many students are enrolled in the Math department?"  
 
-- ✅ High accuracy potential  
-- ⚠️ Requires significant GPU time and data
+Into valid SQL queries such as:  
+`SELECT COUNT(*) FROM students WHERE department = 'Math';`
 
-### 2. Few-shot Learning (Prompt Engineering)  
-Provide a few examples in the prompt (in-context learning) and let the LLM generalize.
-
-- ✅ Fast, no training required  
-- ⚠️ Prompt quality heavily influences performance
+We compare two methods for accomplishing this:
+1. Fine-tuning an LLM on schema-aware data
+2. Few-shot prompting using schema and example queries
 
 ---
 
-## 🧩 Project Pipeline
+## Approaches Compared
 
-### Step 0: Data Preparation  
+### Fine-Tuning
+We train a pre-trained transformer model (e.g., T5 or GPT) on a labeled dataset with schema, natural language questions, and SQL queries.
 
-**Function 1 – Extract Schema**  
-- Load SQLite database  
-- Extract all table names and `CREATE TABLE` statements  
-- Output: Dictionary mapping table names → schema
+- Pros: High potential for accuracy and generalization
+- Cons: Requires significant compute resources and time
 
-**Function 2 – Format Schema for Prompting**  
-- Generate a readable schema block for prompting:  
-  _“Here are the tables in the database:”_ followed by table structures  
-- Add model instructions
+### Few-shot Prompting
+We provide a few labeled examples directly in the prompt and rely on the LLM's in-context learning capabilities.
 
-**Function 3 – Prepare Training/Dev Examples**  
-- Load dataset (e.g., `train.json`)  
-- For each example:  
-  - Add schema context  
-  - Add question, hint (if any), and expected SQL query  
+- Pros: No training required, quick to test and iterate
+- Cons: Highly dependent on prompt quality and structure
+
+---
+
+## Project Pipeline
+
+### Step 0: Data Preparation
+
+**Schema Extraction**
+- Load a SQLite database
+- Extract table names and their `CREATE TABLE` statements
+- Store them in a dictionary format: `{table_name: CREATE statement}`
+
+**Prompt Formatting**
+- Convert the schema dictionary into a readable text prompt
+- Include instructions like “Here are the tables in the database” followed by each table's schema
+
+**Example Construction**
+- Load a dataset such as `train.json`
+- For each example:
+  - Add schema context
+  - Include the natural language question, optional hint, and correct SQL query
 - Return as a pandas DataFrame
 
 ---
 
 ### Step 1: Prompt-Based Inference
 
-#### 🔹 Zero-shot Prompting
-- For each dev example:
-  - Use schema + question only (no examples)
-  - Pass to the LLM
-  - Store result in `zero_shot` column
+**Zero-shot Prompting**
+- Use schema + question only (no examples)
+- Pass to LLM and store the output in a `zero_shot` column
 
-#### 🔹 Few-shot Prompting
-- Sample 2 examples from training set
-- Format each example as:  
-  `Q: <question>\nA: <SQL>`  
-- Combine with schema + current question  
-- Pass to LLM
-- Store result in `few_shot` column
+**Few-shot Prompting**
+- Randomly select two examples from the training set
+- Format each as a question-answer pair
+- Combine them with schema + current question
+- Pass to LLM and store the output in a `few_shot` column
 
-→ Save all dev set predictions (zero-shot and few-shot) to CSV
+All predictions are saved to a CSV file for later analysis.
 
 ---
 
-### Step 2: Fine-Tuning with Schema
+### Step 2: Fine-Tuning
 
-- Input: `[schema + question]`  
-- Output: `SQL query`  
-- Train on BirdSQL training set, evaluate on dev set  
-- If a generated query causes an error:
-  - Prompt the LLM again with `[schema + original query + error message]`
-  - Ask it to correct the SQL
+- Input: schema + question
+- Output: SQL query
+- Train the model on the BirdSQL training set and evaluate on the dev set
+- For queries that result in errors, prompt the LLM with the schema, the incorrect query, and the error message, and ask it to generate a corrected version
 
 ---
 
 ### Step 3: Evaluation Metrics
 
-#### ✅ Execution Accuracy  
-- % of queries that run successfully (no syntax/runtime errors)
+**Execution Accuracy**
+- Percentage of generated queries that run without syntax or runtime errors
 
-#### 🎯 Output Accuracy  
-- % of generated queries that exactly match the gold SQL query  
-- If output is 100% accurate, execution is guaranteed correct
+**Output Accuracy**
+- Percentage of generated queries that exactly match the gold (expected) SQL queries
+
+Note: If a generated query exactly matches the gold query, it is guaranteed to execute correctly.
 
 ---
 
-## 📊 Example Prompt (Few-shot)
+## Example Few-shot Prompt
+
