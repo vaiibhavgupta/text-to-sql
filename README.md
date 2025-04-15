@@ -145,9 +145,10 @@ In this step, the performance of all three approaches—**Zero-shot**, **Few-sho
    \[
    \text{Execution Accuracy} = \frac{\text{Number of Queries That Ran Without Errors}}{\text{Total Queries}} \times 100
    \]
+   
    - Zero-shot Execution Accuracy: **51.04%**
    - Few-shot Execution Accuracy: **1.96%**
-5. **Output Accuracy** is measured using `get_output_accuracy` by comparing the predicted query to the gold query.
+6. **Output Accuracy** is measured using `get_output_accuracy` by comparing the predicted query to the gold query.
    - Zero-shot Output Accuracy: **18.06%**
    - Few-shot Output Accuracy: **0.26%**
 
