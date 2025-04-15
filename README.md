@@ -33,22 +33,6 @@ We compare two methods for accomplishing this:
 
 ---
 
-## Approaches Compared
-
-### Fine-Tuning
-We train a pre-trained transformer model (e.g., T5 or GPT) on a labeled dataset with schema, natural language questions, and SQL queries.
-
-- Pros: High potential for accuracy and generalization
-- Cons: Requires significant compute resources and time
-
-### Few-shot Prompting
-We provide a few labeled examples directly in the prompt and rely on the LLM's in-context learning capabilities.
-
-- Pros: No training required, quick to test and iterate
-- Cons: Highly dependent on prompt quality and structure
-
----
-
 ## Project Pipeline
 
 ### Step 0: Data Preparation
