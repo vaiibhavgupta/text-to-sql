@@ -1,6 +1,6 @@
 # Text-to-SQL
 
-This project explores two approaches for converting natural language questions into structured queries (SQL) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we evaluate both few-shot prompting and fine-tuning techniques on the BirdSQL dataset.
+This project explores two approaches for converting natural language questions into structured queries (SQL) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we evaluate both  prompting and fine-tuning techniques on the BirdSQL dataset.
 
 ---
 
@@ -13,7 +13,7 @@ Uber demonstrated that:
 - Smaller LLMs, with effective prompting, can perform similarly to larger models
 - Execution accuracy and semantic correctness are key metrics for evaluating query generation
 
-Our goal is to replicate and extend these ideas using open-source tools and benchmarks.
+Our goal is to replicate and extend these ideas using open-source tools and benchmarks. We use OLLAMA for our project. We used OLLAMA locally to use LLama 3.2 for this project.
 
 We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test the ability of LLMs to generate SQL across a variety of schemas and complex questions.
 
@@ -28,8 +28,8 @@ Into valid SQL queries such as:
 `SELECT COUNT(*) FROM students WHERE department = 'Math';`
 
 We compare two methods for accomplishing this:
-1. Fine-tuning an LLM on schema-aware data
-2. Few-shot prompting using schema and example queries
+1. Fine-tuning an LLM on schema-aware data 
+2. Prompting, both zero and few-shot, using schema and example queries
 
 ---
 
