@@ -124,7 +124,7 @@ Here’s a clear and structured explanation for **Step 3: Evaluation Metrics**, 
 
 #### Overview
 
-In this step, the performance of all three approaches—**Zero-shot**, **Few-shot**, and **Fine-tuned**—is evaluated using two key metrics:
+In this step, the performance of all approaches—**Zero-shot**, **Few-shot**, **Fine-tuned**, and **Fine-tuned with self coreection**—is evaluated using two key metrics:
 
 - **Execution Accuracy**: Measures how many SQL queries execute without errors on the database. This tells us if the generated SQL is syntactically and semantically valid.
 - **Output Accuracy**: Measures how many generated SQL queries match exactly with the ground truth (`gold_query`). This evaluates correctness beyond just successful execution.
@@ -142,9 +142,8 @@ In this step, the performance of all three approaches—**Zero-shot**, **Few-sho
    - Results (either output or error) are stored for comparison.
 3. Errors from each approach are categorized (e.g., syntax errors, column name errors) using `get_error_distribution`.
 4. **Execution Accuracy** is calculated as:
-   \[
-   \text{Execution Accuracy} = \frac{\text{Number of Queries That Ran Without Errors}}{\text{Total Queries}} \times 100
-   \]
+
+**Execution Accuracy = (Number of Queries That Ran Without Errors / Total Queries) × 100**
    
    - Zero-shot Execution Accuracy: **51.04%**
    - Few-shot Execution Accuracy: **1.96%**
@@ -176,6 +175,46 @@ In this step, the performance of all three approaches—**Zero-shot**, **Few-sho
 
 This evaluation shows that **fine-tuning significantly improves both the correctness and reliability** of SQL query generation compared to zero-shot and few-shot prompting approaches.
 
+---
+Sure! Here's the **complete section** you can directly add to your README under a heading like **"Results Visualization"**. It includes both **textual descriptions** and references to the actual image files from your `figures/` folder using Markdown:
 
 ---
+
+## Results Visualization
+
+This section showcases visual comparisons to better understand the performance of different approaches—zero-shot, few-shot, and fine-tuning.
+
+### Zero-Shot vs Few-Shot Accuracy
+
+The chart below compares how the model performs when provided with no examples (zero-shot) versus when given a few in-context examples (few-shot). It helps highlight the challenges of using few-shot learning in complex tasks like SQL generation.
+
+![Zero vs Few Shot Accuracy](figures/zero_vs_few_shot_accur.png)
+
+---
+
+### Execution Accuracy Across Approaches
+
+This figure compares the **execution accuracy**, i.e., the percentage of SQL queries that ran without errors, across all three methods: zero-shot, few-shot, and fine-tuned. Higher execution accuracy indicates more syntactically and semantically correct SQL queries.
+
+![Execution Accuracy](figures/execution_accuracy_comparison.png)
+
+---
+
+### Output Accuracy Across Approaches
+
+Here we compare the **output accuracy**, which measures how many generated queries exactly match the gold-standard queries from the dataset. This metric reflects the true correctness of the model's output.
+
+![Output Accuracy](figures/output_accuracy_comparison.png)
+
+---
+
+### Error Distribution in Finetuned Model
+
+This chart shows a breakdown of different types of SQL execution errors (e.g., syntax, table not found, column errors) encountered by the fine-tuned model. Understanding these error types helps identify areas for model or data improvement.
+
+![Finetuned Errors](figures/finetuned_error_distribution.png)
+
+---
+
+Let me know if you want to add more charts, rename the files for consistency, or generate captions automatically based on the image filenames.
 
