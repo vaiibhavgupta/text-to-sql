@@ -205,7 +205,3 @@ This chart shows a breakdown of different types of SQL execution errors (e.g., s
 
 ![Finetuned Errors](figures/finetuned_error_distribution.png)
 
----
-
-Let me know if you want to add more charts, rename the files for consistency, or generate captions automatically based on the image filenames.
-
