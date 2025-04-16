@@ -152,3 +152,8 @@ We evaluated each stage of our system using two key metrics:
 - **Fine-tuning** significantly improves structural and syntactic alignment, but still leaves room for semantic mistakes.
 - **Self-correction loops** are an effective, lightweight way to improve model reliability without retraining.
 - **Prompt engineering alone is not enough** — zero/few-shot prompting lacks robustness when dealing with diverse or complex schemas.
+
+### Next Steps
+
+- Use RAG to fetch similar examples for few-shot prompting.
+- Use larger models.
