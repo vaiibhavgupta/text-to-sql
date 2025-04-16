@@ -32,6 +32,15 @@ Our goal is to replicate and extend these ideas using open-source tools and benc
 
 We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test the ability of LLMs to generate SQL across a variety of schemas and complex questions.
 
+Initial Architecture:
+
+<img width="724" alt="image" src="https://github.com/user-attachments/assets/10daea14-9265-4d10-a793-f39b9254caf1" />
+
+Current Architecture:
+
+<img width="724" alt="image" src="https://github.com/user-attachments/assets/3b05a722-2529-4305-b608-ed12e8872c5a" />
+
+
 #### Performance Metrics
 Query Authoring Time: Manual SQL queries at Uber typically take around 10 minutes to write. With QueryGPT, this time is reduced to approximately 3 minutes, representing a significant productivity gain. ​
 
