@@ -113,7 +113,7 @@ We compare 4 approaches to Text-to-SQL: prompting - zero-shot and few-shot, fine
 We evaluated each stage of our system using two key metrics:
 
 - **Execution Accuracy:** Does the query execute correctly on the target database?
-- **Output Accuracy:** Does the generated query exactly match the gold SQL?
+- **Output Accuracy:** Does the output of the generated query exactly matches to that of the gold SQL?
 
 ### Accuracy Comparison
 
