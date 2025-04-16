@@ -1,216 +1,154 @@
-# Text-to-SQL
+# Text-to-SQL: A Comparison Study
 
-This project explores two approaches for converting natural language questions into structured queries (SQL) using large language models (LLMs). Inspired by real-world applications like Uber's QueryGPT, we want to see if prompting and fine-tuning techniques via smaller models such as Llama 3.2 on the BirdSQL dataset can acheieve comparable results.
+This project explores how different prompting strategies, model fine-tuning, and a self-correcting feedback loop impact the ability of a large language model to translate natural language questions into executable SQL queries.
 
----
+## What is Text-to-SQL?
 
-## Project Objective
+**Text-to-SQL** is a natural language processing task where the goal is to convert a user's question or instruction into a valid and executable SQL query.
 
-Convert questions such as:  
-"How many students are enrolled in the Math department?"  
+It enables users — even those unfamiliar with SQL — to interact with databases using plain English.
 
-Into valid SQL queries such as:  
-`SELECT COUNT(*) FROM students WHERE department = 'Math';`
+### Example
 
-We compare two methods for accomplishing this:
-1. Fine-tuning an LLM on schema-aware data 
-2. Prompting, both zero and few-shot, using schema and example queries
+**Input (natural language):**
 
+*"List the names of all customers who made purchases over $1000 in the last month."*
 
----
+**Output (SQL):**  
+
+```sql
+SELECT
+customer_name
+FROM
+purchases
+WHERE
+amount > 1000 AND purchase_date >= DATE('now', '-1 month');
+```
+
+In this project, we generate such SQL queries using large language models (LLMs), evaluate their correctness by executing them, and even apply automated correction when the model fails to produce a working query.
 
 ## Motivation
 
-Inspired by Uber’s [QueryGPT](https://www.uber.com/blog/query-gpt/), our project explores the effectiveness of prompting strategies and fine-tuning for translating natural language into structured queries.
+Inspired by Uber’s [QueryGPT](https://www.uber.com/blog/query-gpt/), our project explores the effectiveness of prompting strategies and fine-tuning for translating natural language into structured SQL queries.
 
-Uber demonstrated that:
-- LLMs can help bridge the gap between business users and structured databases
-- Smaller LLMs, with effective prompting, can perform similarly to larger models
-- Execution accuracy and semantic correctness are key metrics for evaluating query generation
+### Why Uber invested in QueryGPT?
 
-Our goal is to replicate and extend these ideas using open-source tools and benchmarks. We use OLLAMA for our project. We used OLLAMA locally to use LLama 3.2 for this project.
+- **Need:** Uber's teams, including engineers and data scientists, frequently craft SQL queries to access and analyze vast datasets. This process is time-consuming, especially for those less familiar with SQL syntax and Uber's complex data models.
 
-We use the [BirdSQL](http://bird-bench.github.io/) dataset — a modern benchmark designed to test the ability of LLMs to generate SQL across a variety of schemas and complex questions.
+- **Methodology:** QueryGPT leverages large language models (OpenAI), vector databases, and similarity search techniques to translate natural language prompts into SQL queries. It incorporates features like "workspaces" tailored to specific business domains and a "Table Agent" that assists users in selecting appropriate tables, enhancing the relevance and accuracy of generated queries.
 
-Initial Architecture:
+- **Impact:** By automating SQL query generation, QueryGPT reduces the time required to create queries from approximately 10 minutes to about 3 minutes, significantly boosting productivity across Uber's operations.
 
-<img width="724" alt="image" src="https://github.com/user-attachments/assets/10daea14-9265-4d10-a793-f39b9254caf1" />
+## Our Methodology
 
-Current Architecture:
+### Dataset: BirdSQL Benchmark
 
-<img width="724" alt="image" src="https://github.com/user-attachments/assets/3b05a722-2529-4305-b608-ed12e8872c5a" />
+We use the [BirdSQL](https://bird-bench.github.io/) dataset — a recent benchmark specifically designed to evaluate the text-to-SQL capabilities of large language models.
 
+- **Multi-domain coverage:** Includes diverse databases like `student_loan`, `retails`, `simpson_episodes`, `law_episode`, and more.
+- **Complexity:** Questions span basic retrieval to nested queries, aggregations, joins, and subqueries.
+- **Split:** We use the official `train_set` and `dev_set`:
+  - `train_set.csv`: ~9400 examples
+  - `dev_set.csv`: ~1500 examples 
 
-#### Performance Metrics
-Query Authoring Time: Manual SQL queries at Uber typically take around 10 minutes to write. With QueryGPT, this time is reduced to approximately 3 minutes, representing a significant productivity gain. ​
+Each example consists of:
+- A natural language question
+- The corresponding target database schema (SQLite)
+- The expected output (SQL query)
 
-User Adoption and Satisfaction: In a limited release to Operations and Support teams, about 300 daily active users reported that 78% of the generated queries reduced the time they would have spent writing queries from scratch. 
+This makes BirdSQL ideal for evaluating **execution accuracy** and **generalization across schemas**.
 
----
+### Model
 
-## Project Pipeline
+- We used LLaMa 3.2 3B model for both prompting and finetuning.
+- Used Ollama to host the model locally.
+- Used Unsloth for model finetuning.
 
-### Step 0: Data Preparation
+### Pipelines
 
-**Schema Extraction**
-- Load a SQLite database
-- Extract table names and their `CREATE TABLE` statements
-- Store them in a dictionary format: `{table_name: CREATE statement}`
+We compare 4 approaches to Text-to-SQL: prompting - zero-shot and few-shot, fine-tuning, and error-aware correction on fine-tuned model.
 
-**Prompt Formatting**
-- Convert the schema dictionary into a readable text prompt
-- Include instructions and context like “Here are the tables in the database” followed by each table's schema.
+## Approach 1: Zero-Shot Prompting
 
-**Example Construction**
-- Load a dataset such as `train.json`
-- For each example:
-  - Add schema context
-  - Include the natural language question, optional hint, and correct SQL query
-- Return as a pandas DataFrame
+- From `dev_set`, the model was given
+    - db schema
+    - Question
+    - Hint
 
----
+## Approach 2: Few-Shot Prompting
 
-### Step 1: Prompt-Based Inference
+- 2 random examples from `train_set` in addition to `Approach 1` items.
 
-**Zero-shot Prompting**
-- Use schema + question only (no examples)
-- Pass to LLM and store the output in a `zero_shot` column
+## Approach 3: Model Finetuning
 
-**Few-shot Prompting**
-- Randomly select two examples from the training set
-- Format each as a question-answer pair
-- Combine them with schema + current question
-- Pass to LLM and store the output in a `few_shot` column
+- Trained on the `train_set` of BirdSQL
+- Each training sample includes:
+  - db schema
+  - Question
+  - Hint
+  - SQL
+- This step drastically improved:
+  - Query structure
+  - Keyword alignment (SELECT, WHERE, JOINs)
+  - Column and table usage matching the schema
 
-All predictions are saved to a CSV file for later analysis.
+## Approach 4: Model Finetuning with Self-Correction Loop
 
----
+- Despite fine-tuning, models occasionally generate SQL that fails execution due to:
+  - Syntax errors
+  - Invalid columns/tables
+  - Logical flaws
+- To handle this, we introduced a **self-correction loop**:
+  1. Execute the model’s SQL using a SQLite engine.
+  2. If execution fails, capture the error.
+  3. Construct a new prompt with:
+     - Database schema
+     - Error message
+     - Faulty SQL query
+  4. Send it back to the LLM to revise the SQL.
+     - This step alone boosted executable accuracy significantly and closely mimics how a human would debug SQL.
 
-### Step 2: Fine-Tuning
+## Evaluation & Results
 
-#### Part 1: Training a Fine-tuned Language Model Using LoRA
-The training and validation datasets (train_set.csv and dev_set.csv) are loaded. Each row contains a conversation, which includes a database schema, a natural language question, a hint, and the corresponding SQL query.
+We evaluated each stage of our system using two key metrics:
 
-The script initializes the LLaMA 3.2B Instruct model using the Unsloth framework, with an option to load the model in 4-bit precision to optimize memory usage.
+- **Execution Accuracy:** Does the query execute correctly on the target database?
+- **Output Accuracy:** Does the generated query exactly match the gold SQL?
 
-The model is prepared for fine-tuning using LoRA (Low-Rank Adaptation), which injects trainable adapter layers into key transformer components. This allows efficient fine-tuning without updating the full model.
+### Accuracy Comparison
 
-A chat template is applied to format the training data as conversational text, matching the structure expected by the model. This helps align the model's behavior with typical dialogue-style prompts.
+<img src="./figures/execution-accuracy.png" alt="Execution Accuracy" width="50%" height="50%">
 
-The processed dataset is passed to the SFTTrainer, which fine-tunes the model using supervised learning. Training parameters such as learning rate, batch size, number of epochs, and precision settings (fp16 or bf16) are specified using TrainingArguments.
+<img src="./figures/output-accuracy.png" alt="Output Accuracy" width="50%" height="50%">
 
-Once training is complete, the fine-tuned model is used to generate predictions on the dev set. Each prompt (schema, question, and hint) is tokenized and passed to the model to produce a SQL output, which is then decoded and saved to a new file, dev_set_finetuned.csv.
+| Model Variant              | Execution Accuracy | Output Accuracy |
+|----------------------------|--------------------|-----------------|
+| Finetuned + Self-Correction| **85.1%**          | **30.8%**       |
+| Finetuned Only             | 72.5%              | 28.3%           |
+| Zero-Shot Prompting        | 50.1%              | 18.0%           |
+| Few-Shot Prompting         | 2.0%               | 0.2%            |
 
-Finally, the trained model is saved in GGUF format, making it suitable for further use or deployment.
+### Error-Type Breakdown
 
-#### Part 2: Evaluation and Query Rectification
-The fine-tuned predictions are loaded and processed to extract:
+<img src="./figures/error-few-shot.png" alt="Few-Shot Error Distribution" width="50%" height="50%">
 
-The gold (ground truth) SQL query,
+<img src="./figures/error-zero-shot.png" alt="Zero Error Distribution" width="50%" height="50%">
 
-The model's predicted query,
+<img src="./figures/error-finetuned.png" alt="Few-Shot Error Distribution" width="50%" height="50%">
 
-The original schema included in the prompt.
+<img src="./figures/error-finetuned-self-correction.png" alt="Few-Shot Error Distribution" width="50%" height="50%">
 
-Each predicted SQL query is executed against the database using a function run_query, which returns the result or an error if the query fails.
+| Model Variant              | Total Errors | Top Error Type       |
+|----------------------------|--------------|----------------------|
+| Few-Shot Prompting         | 1504         | Syntax (69.3%)       |
+| Zero-Shot Prompting        | 751          | Syntax (48.1%)       |
+| Finetuned Only             | 410          | Column (78.3%)       |
+| Finetuned + Self-Correction| **238**      | Column (76.1%)       |
 
-If the query fails to execute (e.g., due to syntax or schema errors), a rectification process is triggered:
+## Critical Analysis
 
-A prompt is generated using the schema, the failed query, and the error message.
+### Key Insights
 
-This prompt is passed to the language model again, asking it to correct the query.
-
-If the model returns the fixed query within a code block (e.g., sql ... ), it is parsed accordingly.
-
-The corrected query is then executed to verify if the issue is resolved.
-
-Execution results from both the original and rectified queries are collected.
-
-Finally, evaluation metrics such as output accuracy and error types are computed using helper functions like get_error_distribution and get_output_accuracy. This provides insights into the effectiveness of fine-tuning and the model’s ability to generate valid SQL.
-
-
----
-
-Here’s a clear and structured explanation for **Step 3: Evaluation Metrics**, broken down into simple points:
-
----
-
-### Step 3: Evaluating Model Performance Using Execution and Output Accuracy
-
-#### Overview
-
-In this step, the performance of all approaches—**Zero-shot**, **Few-shot**, **Fine-tuned**, and **Fine-tuned with self coreection**—is evaluated using two key metrics:
-
-- **Execution Accuracy**: Measures how many SQL queries execute without errors on the database. This tells us if the generated SQL is syntactically and semantically valid.
-- **Output Accuracy**: Measures how many generated SQL queries match exactly with the ground truth (`gold_query`). This evaluates correctness beyond just successful execution.
-
-> Note: If a query is **100% correct (output accuracy)**, it will **always execute successfully** (100% execution accuracy). However, a query might execute without errors and still be logically wrong.
-
----
-
-#### Part 1: Evaluating Zero-shot and Few-shot Predictions
-
-1. The file `dev_set_zero_few_shot.csv` is loaded, which contains predictions from zero-shot and few-shot prompting.
-2. For each row:
-   - The gold SQL query is extracted.
-   - The zero-shot and few-shot predictions are run on the corresponding database using `run_query`.
-   - Results (either output or error) are stored for comparison.
-3. Errors from each approach are categorized (e.g., syntax errors, column name errors) using `get_error_distribution`.
-4. **Execution Accuracy** is calculated as:
-
-**Execution Accuracy = (Number of Queries That Ran Without Errors / Total Queries) × 100**
-   
-   - Zero-shot Execution Accuracy: **51.04%**
-   - Few-shot Execution Accuracy: **1.96%**
-6. **Output Accuracy** is measured using `get_output_accuracy` by comparing the predicted query to the gold query.
-   - Zero-shot Output Accuracy: **18.06%**
-   - Few-shot Output Accuracy: **0.26%**
-
----
-
-#### Part 2: Evaluating Fine-tuned Model Predictions
-
-1. Predictions from the fine-tuned model are loaded from `dev_set_finetuned.csv`.
-2. Each predicted and gold SQL query is executed against the corresponding database.
-3. Errors are categorized and counted.
-4. **Execution Accuracy**:
-   - Fine-tuned Execution Accuracy: **73.27%**
-5. **Output Accuracy**:
-   - Fine-tuned Output Accuracy: **30.12%**
-
----
-
-## Results Visualization
-
-This section showcases visual comparisons to better understand the performance of different approaches—zero-shot, few-shot, and fine-tuning.
-
-### Zero-Shot vs Few-Shot Accuracy
-
-The chart below compares how the model performs when provided with no examples (zero-shot) versus when given a few in-context examples (few-shot). It helps highlight the challenges of using few-shot learning in complex tasks like SQL generation.
-
-![Zero vs Few Shot Accuracy](figures/zero_vs_few_shot_accur.png)
-
----
-
-### Execution Accuracy Across Approaches
-
-This figure compares the **execution accuracy**, i.e., the percentage of SQL queries that ran without errors, across all three methods: zero-shot, few-shot, and fine-tuned. Higher execution accuracy indicates more syntactically and semantically correct SQL queries.
-
-![Execution Accuracy](figures/execution_accuracy_comparison.png)
-
----
-
-### Output Accuracy Across Approaches
-
-Here we compare the **output accuracy**, which measures how many generated queries exactly match the gold-standard queries from the dataset. This metric reflects the true correctness of the model's output.
-
-![Output Accuracy](figures/output_accuracy_comparison.png)
-
----
-
-### Error Distribution in Finetuned Model
-
-This chart shows a breakdown of different types of SQL execution errors (e.g., syntax, table not found, column errors) encountered by the fine-tuned model. Understanding these error types helps identify areas for model or data improvement.
-
-![Finetuned Errors](figures/finetuned_error_distribution.png)
-
+- **Fine-tuning** significantly improves structural and syntactic alignment, but still leaves room for semantic mistakes.
+- **Self-correction loops** are an effective, lightweight way to improve model reliability without retraining.
+- **Prompt engineering alone is not enough** — zero/few-shot prompting lacks robustness when dealing with diverse or complex schemas.
